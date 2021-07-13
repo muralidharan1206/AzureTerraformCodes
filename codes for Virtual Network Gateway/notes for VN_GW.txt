@@ -1,0 +1,32 @@
+Virtual Network Gateway:
+------------------------
+configuration of VNET-VNET.
+---------------------------
+1. Create Resource group 
+2. Create 2 virtual networks 
+3. Create 2 subnets for virtual machines
+4. Create 2 subnets for virtual machine gateway
+5. Create 2 Virtual machine on the 2 subnets.
+6. Create 2 NI for the VM's 
+7. Attach 2 public IP in the 2 NI.
+8. Create 2 Virtual Network Gateway
+9. Create 2 public IP for Virtual Network Gateway
+10. configure the 2 gateways to communicate to each other, with the help of "connection"
+
+
+Notes:
+
+Virtual network gateway is used to connect two different networks.
+three types of connection is available
+1. VNET to VNET --> Connection in between the Vnet's which are all in different regions. 
+2. site to site --> Connection between the on-premise and cloud
+3. point to site --> connection between on-premise and service provider.
+
+We can configure any of these to route the traffic.
+
+The same action is done via "Peering", which is not a encrypted one. whereas this "virtual network gateway"  is encrypted one. 
+
+(Im not sure about these three, refer google)
+
+
+

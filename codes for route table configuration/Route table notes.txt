@@ -1,0 +1,45 @@
+Creation of route table using terraform:
+----------------------------------------
+
+resources need to create:
+1.Resource Group
+2.Virtual Network
+	i) Public subnet
+	ii) Private subnet
+	iii) Network Virtual Appliance subnet
+3.Network Interface for Public subnet
+	Network Interface for Private subnet
+	Network Interface for Network Virtual Appliance
+4.Publi Ip for Public Network Interface
+5.create 3 Virtual machines on each subnets.
+	i. One VM in Public subnet
+	ii. Another two VM's in other two private network
+6.We need to configure one VM as virtual appliance (We need to enable IP forwarding in this VM, So that it act as a router,It is used to forward the traffic)
+7.Create Route table and configure it.
+
+
+Network Virtual Appliance VM configure:
+---------------------------------------
+
+use this link to get the script from repo:
+------------------------------------------
+
+ "https://raw.githubusercontent.com/mspnp/reference-architectures/master/scripts/linux/enable-ip-forwarding.sh"
+
+Content in the ip-forwarding script:
+------------------------------------
+
+#!/bin/bash
+bash -c "echo net.ipv4.ip_forward=1 >> /etc/sysctl.conf"
+sysctl -p /etc/sysctl.conf 
+	
+
+To check whether our configuration is correct use the "traceroute" command.
+--------------------------------------------------------------------------
+
+To install traceroute in ubuntu
+
+1. sudo apt update
+2. sudo apt install traceroute
+3. traceroute <hostname> --> it will show the target and next hop.
+
