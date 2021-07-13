@@ -213,6 +213,16 @@ resource "azurerm_public_ip" "demo_pub_ip_NI2" {
   sku                 = "Standard"
 }
 
+//Create and display the SSH keys
+resource "tls_private_key" "example_ssh" {
+  algorithm = "RSA"
+  rsa_bits = 4096
+}
+
+output "tls_private_key" {
+  value = tls_private_key.example_ssh.private_key_pem
+}
+
 //VM-1
 resource "azurerm_linux_virtual_machine" "demoVM-1" {
     name                  = "VM1"
@@ -240,7 +250,7 @@ resource "azurerm_linux_virtual_machine" "demoVM-1" {
 
     admin_ssh_key {
         username       = "azureuser"
-        public_key     = file("~/.ssh/id_rsa.pub")
+        public_key     = tls_private_key.example_ssh.public_key_openssh
     }
 }
 
@@ -271,6 +281,6 @@ resource "azurerm_linux_virtual_machine" "demoVM-2" {
 
     admin_ssh_key {
         username       = "azureuser"
-        public_key     = file("~/.ssh/id_rsa.pub")
+        public_key     = tls_private_key.example_ssh.public_key_openssh
     }
 }
