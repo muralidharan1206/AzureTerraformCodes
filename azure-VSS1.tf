@@ -17,6 +17,33 @@ resource "azurerm_resource_group" "example" {
   location = "East US"
 }
 
+resource "azurerm_subnet" "bastion_subnet" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.64.0/18"]
+}
+
+resource "azurerm_public_ip" "pip" {
+  name                = "pip"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_bastion_host" "bastion_host" {
+  name                = "bastion"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.bastion_subnet.id
+    public_ip_address_id = azurerm_public_ip.pip.id
+  }
+}
+
 //Virtual Network
 resource "azurerm_virtual_network" "example" {
   name                = "demovn"
@@ -39,46 +66,30 @@ resource "azurerm_public_ip" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
-  domain_name_label   = azurerm_resource_group.example.name
 }
 
-//Load Balancer
+//load balancer
 resource "azurerm_lb" "example" {
-  name                = "demoLB"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+ name                = "vmss-lb"
+ location            = azurerm_resource_group.example.location
+ resource_group_name = azurerm_resource_group.example.name
 
-  frontend_ip_configuration {
-    name                 = "PublicIPAddress"
-    public_ip_address_id = azurerm_public_ip.example.id
-  }
+ frontend_ip_configuration {
+   name                 = "PublicIPAddress"
+   public_ip_address_id = azurerm_public_ip.example.id
+ }
 }
 
-//Backend Address 
-resource "azurerm_lb_backend_address_pool" "bpepool" {
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "BackEndAddressPool"
-}
-
-//
-resource "azurerm_lb_nat_pool" "lbnatpool" {
-  resource_group_name            = azurerm_resource_group.example.name
-  name                           = "ssh"
-  loadbalancer_id                = azurerm_lb.example.id
-  protocol                       = "Tcp"
-  frontend_port_start            = 50000
-  frontend_port_end              = 50119
-  backend_port                   = 22
-  frontend_ip_configuration_name = "PublicIPAddress"
+resource "azurerm_lb_backend_address_pool" "example" {
+ loadbalancer_id     = azurerm_lb.example.id
+ name                = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_probe" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "http-probe"
-  protocol            = "Http"
-  request_path        = "/"
-  port                = 8080
+ name                = "healthprobe" 
+ resource_group_name = azurerm_resource_group.example.name
+ loadbalancer_id     = azurerm_lb.example.id
+ port                = "80"
 }
 
 //VSS(Virtual Machine Scale Set)
@@ -134,8 +145,6 @@ resource "azurerm_virtual_machine_scale_set" "example" {
       name                                   = "TestIPConfiguration"
       primary                                = true
       subnet_id                              = azurerm_subnet.example.id
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.bpepool.id]
-      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.lbnatpool.id]
     }
   }
  }
@@ -201,4 +210,17 @@ resource "azurerm_monitor_autoscale_setting" "example" {
       custom_emails                         = ["azure010698@gmail.com"]
     }
   }
+}
+
+resource "azurerm_virtual_machine_scale_set_extension" "vmss_extension" {
+  name                         = "vmss_extension"
+  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set.example.id
+  publisher                    = "Microsoft.Azure.Extensions"
+  type                         = "CustomScript"
+  type_handler_version         = "2.0"
+  settings = <<SETTINGS
+        {
+          "commandToExecute" : "sudo apt-get -y update && sudo apt-get install -y apache2" 
+        }
+        SETTINGS
 }
