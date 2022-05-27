@@ -1,8 +1,0 @@
-installation of ngrok:
------------------------
-wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-386.zip
-unzip file name
-./ngrok http 8080
-
-My ngrok url:
-http://80ff85f89edf.ngrok.io/login?from=%2F
